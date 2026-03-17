@@ -487,15 +487,35 @@ function LandingScreen({ onSelect, user, reviews }) {
           setLocationName(city);
 
           // Ask Claude to find top-rated local small businesses nearby
-          const r1 = await fetch("https://api.anthropic.com/v1/messages", {
-            method:"POST", headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, tools:[{type:"web_search_20250305",name:"web_search"}],
-              messages:[{role:"user", content:`Search for the best-rated local small businesses (not national chains) near ${city} (lat ${latitude.toFixed(3)}, lon ${longitude.toFixed(3)}). Focus on highly reviewed independent restaurants, shops, or service businesses.`}]
-            })
-          });
+const r1 = await fetch("/api/chat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    messages: [
+      {
+        role: "user",
+        content: `Search for the best-rated local small businesses (not national chains) near ${city} (lat ${latitude.toFixed(3)}, lon ${longitude.toFixed(3)}). Focus on highly reviewed independent restaurants, shops, or service businesses.`
+      }
+    ]
+  })
+});
           const d1 = await r1.json();
-          const r2 = await fetch("https://api.anthropic.com/v1/messages", {
-            method:"POST", headers:{"Content-Type":"application/json"},
+const r2 = await fetch("/api/chat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    messages: [
+      {
+        role: "user",
+        content: `Based on those results, return a JSON array of 4–6 highly-rated local businesses near ${city}. Include: name, address, city, category, rating, review_count, price_level, why_local. Return raw JSON only.`
+      }
+    ]
+  })
+});            method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, tools:[{type:"web_search_20250305",name:"web_search"}],
               messages:[
                 {role:"user", content:`Search for best-rated local small businesses near ${city}.`},
@@ -521,13 +541,24 @@ function LandingScreen({ onSelect, user, reviews }) {
     if (!query.trim()) return;
     setLoading(true); setErr(""); setResults([]); setSearched(false);
     try {
-      const res1 = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
+const res1 = await fetch("/api/chat", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    messages: [
+      {
+        role: "user",
+        content: `Search for real businesses matching: "${query}". Include name, address, city, category, rating and review count.`
+      }
+    ]
+  })
+});        method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, tools:[{type:"web_search_20250305",name:"web_search"}], messages:[{role:"user",content:`Search for businesses matching: "${query}". Find real listings with names, addresses, categories, and ratings.`}] })
       });
       const data1 = await res1.json();
-      const res2 = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
+const res2 = await fetch("https://api.anthropic.com/v1/messages", {        method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, tools:[{type:"web_search_20250305",name:"web_search"}], messages:[
           {role:"user",content:`Search for businesses matching: "${query}".`},
           {role:"assistant",content:data1.content||[]},
